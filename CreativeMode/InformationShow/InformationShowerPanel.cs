@@ -37,7 +37,6 @@ namespace CreativeMode.InformationShow
                         .AddClass("date-panel__text")
                         .AddClass("game-text-normal")
                         .SetName("InformationShowerPanel")
-                        //.SetLocKey("HeightShower.Panel.Height")
                         .Build()))
                     .BuildAndInitialize();
 
