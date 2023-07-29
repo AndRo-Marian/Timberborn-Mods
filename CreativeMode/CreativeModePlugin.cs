@@ -17,6 +17,7 @@ using TimberApi.ToolGroupSystem;
 using Timberborn.BuildingTools;
 using Timberborn.BlockSystem;
 using Timberborn.Buildings;
+using Timberborn.Coordinates;
 using Timberborn.CursorToolSystem;
 using Timberborn.GameScene;
 using Timberborn.Localization;
@@ -88,19 +89,26 @@ namespace CreativeMode
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(BuildingPlacer), "Place")]
-        private static bool OnObjectPlace(BlockObject prefab)
+        private static bool OnObjectPlace(BuildingPlacer __instance, BlockObject prefab, Vector3Int coordinates, Orientation orientation)
         {
-            var component = prefab.GetComponentFast<Building>();
+            var componentFast = prefab.GetComponentFast<Building>();
             
-            if (_config.Enabled && _config.InstantBuild)
+            if (__instance.ShouldBePlacedFinished(componentFast))
             {
-                component._placeFinished = true;
+                __instance._constructionFactory.CreateAsFinished(componentFast, coordinates, orientation);
             }
-            else if (component._placeFinished)
+            else
             {
-                component._placeFinished = false;
+                if (_config.Enabled && _config.InstantBuild)
+                {
+                    __instance._constructionFactory.CreateAsFinished(componentFast, coordinates, orientation);
+                }
+                else
+                {
+                    __instance._constructionFactory.CreateAsUnfinished(componentFast, coordinates, orientation);
+                }
             }
-            return true;
+            return false;
         }
 
         #endregion
