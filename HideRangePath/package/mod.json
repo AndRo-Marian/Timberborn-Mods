@@ -1,0 +1,8 @@
+﻿{
+  "Name": "HideRangePath",
+  "Version": "1.0.0",
+  "UniqueId": "HideRangePath",
+  "MinimumApiVersion": "0.5.5",
+  "MinimumGameVersion": "0.4.0",
+  "EntryDll": "HideRangePath.dll"
+}
