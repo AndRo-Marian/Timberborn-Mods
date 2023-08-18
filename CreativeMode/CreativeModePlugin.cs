@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using CreativeMode.InformationShow;
 using HarmonyLib;
@@ -21,7 +23,11 @@ using Timberborn.Coordinates;
 using Timberborn.CursorToolSystem;
 using Timberborn.GameScene;
 using Timberborn.Localization;
+using Timberborn.MainMenuSceneLoading;
+using Timberborn.MapEditorScene;
+using Timberborn.MapEditorSceneLoading;
 using Timberborn.QuickNotificationSystem;
+using Timberborn.SceneLoading;
 using Timberborn.WaterSourceSystemUI;
 using UnityEngine;
 
@@ -49,6 +55,7 @@ namespace CreativeMode
         
         private static InformationShowerPanel _infoPanel;
         private static QuickNotificationService _notification;
+        private static ISceneParameters _sceneParameters;
 
         #region Entry:
 
@@ -75,11 +82,24 @@ namespace CreativeMode
 
         #endregion
         #region Game initialize:
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(NewGameInitializer), "Start")]
-        private static void OnGameStarted(NewGameInitializer __instance)
+        
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(SceneLoader), "LoadScene")]
+        private static void OnMapEditorInit3(SceneLoader __instance, ISceneParameters sceneParameters)
         {
+            _sceneParameters = sceneParameters;
+        }
+        
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SceneLoader), "ReadyToStart", MethodType.Setter)]
+        private static void OnMapEditorInit2(SceneLoader __instance, bool value)
+        {
+            if (_sceneParameters.GetType() == typeof(MainMenuSceneParameters))
+            {
+                return;
+            }
+            if (!value) { return; };
+            
             _infoPanel = DependencyContainer.GetInstance<InformationShowerPanel>();
             _notification = DependencyContainer.GetInstance<QuickNotificationPanel>()._quickNotificationService;
         }
@@ -264,6 +284,11 @@ namespace CreativeMode
         [HarmonyPatch(typeof(CursorDebugger), "GetCoordinates")]
         public static void GetCursorCoordinates(CursorDebugger __instance, Ray ray)
         {
+            if (_infoPanel == null)
+            {
+                return;
+            }
+            
             var result = __instance._terrainPicker.PickTerrainCoordinates(ray);
             
             if (result == null) { return; }
